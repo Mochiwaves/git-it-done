@@ -2,6 +2,7 @@ var userFormEl = document.querySelector("#user-form");
 var nameInputEl = document.querySelector("#username");
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
+var languageButtonsEl = document.querySelector("#language-buttons");
 
 
 var formSubmitHandler = function(event) {
@@ -13,6 +14,7 @@ var formSubmitHandler = function(event) {
 
     if (username) {
         getUserRepos(username);
+        repoContainerEl.textContent = "";
         nameInputEl.value = "";
     } else {
         alert("Please enter a GitHub username");
@@ -27,7 +29,6 @@ var displayRepos = function(repos, searchTerm) {
         repoContainerEl.textContent = "No repositories found.";
         return;
     }
-    repoContainerEl.textContent = "";
     repoSearchTerm.textContent = searchTerm;
 
 
@@ -82,19 +83,40 @@ var getUserRepos = (function(user) {
             console.log(data);
         });
         } else {
-            alert("Error: GitHub User Not Found");
+            alert("Error: " + response.statusText);
         }
         })
         .catch(function(error) {
             //Notice this .catch() getting chained onto the end of the .then()
             alert("unable to conect to Github");
         });
-        console.log("inside",response);
     });
-    console.log("outside");
 
-    var response = fetch("https://api.github.com/users/octocat/repos");
-    console.log(response);
+var getFeaturedRepos = function(language) {
+    var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
 
+    fetch(apiUrl).then(function(response) {
+        if (response.ok) { 
+            response.json().then(function(data) {
+                displayRepos(data.items, language);
+            });
+        } else {
+            alert('Error: GitHub User Not Found');
+        }
+    });
+};
+
+var buttonClickHandler = function(event){
+    var language = event.target.getAttribute("data-language");
+    console.log(language);
+    if(language) {
+        getFeaturedRepos(language);
+
+        //clear old content
+        repoContainerEl.textContent = "";
+    }
+
+};
+
+languageButtonsEl.addEventListener("click", buttonClickHandler);
 userFormEl.addEventListener("submit", formSubmitHandler);
-//getUserRepos("mochiwaves");
